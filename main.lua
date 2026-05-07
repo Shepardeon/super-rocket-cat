@@ -20,8 +20,8 @@ function love.draw()
 end
 
 function love.keypressed(key)
-    InputActions.keypressed(key)
-    SceneManager.keypressed(key)
+    InputActions.keypressed(key)   -- MUST be first: populates just_pressed for pressed()
+    SceneManager.keypressed(key)   -- depends on InputActions state from above
 end
 
 function love.keyreleased(key)
@@ -29,8 +29,8 @@ function love.keyreleased(key)
 end
 
 function love.gamepadpressed(joystick, button)
-    InputActions.gamepadpressed(joystick, button)
-    SceneManager.keypressed(button)
+    InputActions.gamepadpressed(joystick, button)   -- MUST be first: populates just_pressed for pressed()
+    SceneManager.keypressed(button)                 -- depends on InputActions state from above
 end
 
 function love.gamepadreleased(joystick, button)

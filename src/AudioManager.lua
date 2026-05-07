@@ -1,18 +1,18 @@
 local AudioManager = {}
 
 local music_assets = {
-    menu = 'assets/audio/music/menu.ogg',
-    game = 'assets/audio/music/game.ogg',
+    menu = "assets/audio/music/menu.ogg",
+    game = "assets/audio/music/game.ogg",
 }
 
 local sfx_assets = {
-    confirm = 'assets/audio/sfx/confirm.wav',
-    select = 'assets/audio/sfx/select.wav',
-    explosion = 'assets/audio/sfx/explosion.wav',
-    collect = 'assets/audio/sfx/collect.wav',
-    qte_ok = 'assets/audio/sfx/qte_ok.wav',
-    qte_fail = 'assets/audio/sfx/qte_fail.wav',
-    click = 'assets/audio/sfx/click.wav',
+    confirm = "assets/audio/sfx/confirm.wav",
+    select = "assets/audio/sfx/select.wav",
+    explosion = "assets/audio/sfx/explosion.wav",
+    collect = "assets/audio/sfx/collect.wav",
+    qte_ok = "assets/audio/sfx/qte_ok.wav",
+    qte_fail = "assets/audio/sfx/qte_fail.wav",
+    click = "assets/audio/sfx/click.wav",
 }
 
 local sources = {
@@ -22,11 +22,11 @@ local sources = {
 
 function AudioManager.load()
     for key, path in pairs(music_assets) do
-        local ok, source = pcall(love.audio.newSource, path, 'stream')
+        local ok, source = pcall(love.audio.newSource, path, "stream")
         sources.music[key] = ok and source or nil
     end
     for key, path in pairs(sfx_assets) do
-        local ok, source = pcall(love.audio.newSource, path, 'static')
+        local ok, source = pcall(love.audio.newSource, path, "static")
         sources.sfx[key] = ok and source or nil
     end
 end
@@ -88,10 +88,7 @@ function AudioManager.getSfxVolume()
 end
 
 function AudioManager.fadeMusic(targetVol, duration, callback)
-    local startVol = music_volume
-    if current_music then
-        startVol = current_music:getVolume()
-    end
+    local startVol = current_music and current_music:getVolume() or music_volume
     fade_state = {
         start_vol = startVol,
         target_vol = targetVol,
