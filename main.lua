@@ -1,14 +1,17 @@
 local SceneManager = require("src.SceneManager")
 local MenuScene = require("src.scenes.MenuScene")
 local InputActions = require("src.InputActions")
+local AudioManager = require("src.AudioManager")
 
 function love.load()
     love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
     SceneManager.push(MenuScene)
+    AudioManager.load()
 end
 
 function love.update(dt)
     SceneManager.update(dt)
+    AudioManager.update(dt)
     InputActions.clearPressed()
 end
 
