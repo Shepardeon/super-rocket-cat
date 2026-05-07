@@ -15,7 +15,21 @@ local sfx_assets = {
     click      = "assets/audio/sfx/click.wav",
 }
 
-function AudioManager.load() end
+local sources = {
+    music = {},
+    sfx = {},
+}
+
+function AudioManager.load()
+    for key, path in pairs(music_assets) do
+        local ok, source = pcall(love.audio.newSource, path, "stream")
+        sources.music[key] = ok and source or nil
+    end
+    for key, path in pairs(sfx_assets) do
+        local ok, source = pcall(love.audio.newSource, path, "static")
+        sources.sfx[key] = ok and source or nil
+    end
+end
 function AudioManager.playMusic(key, loop) end
 function AudioManager.stopMusic() end
 function AudioManager.playSfx(key) end
