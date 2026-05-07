@@ -1,11 +1,12 @@
 local GameScene = {}
+local InputActions = require("src.InputActions")
 
 function GameScene.load() end
 function GameScene.update(dt) end
 function GameScene.unload() end
 
 function GameScene.keypressed(key)
-    if key == "escape" then
+    if InputActions.pressed("pause") then
         local SceneManager = require("src.SceneManager")
         local PauseScene = require("src.scenes.PauseScene")
         SceneManager.push(PauseScene)

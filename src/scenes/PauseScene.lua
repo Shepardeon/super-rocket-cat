@@ -1,11 +1,12 @@
 local PauseScene = {}
+local InputActions = require("src.InputActions")
 
 function PauseScene.load() end
 function PauseScene.update(dt) end
 function PauseScene.unload() end
 
 function PauseScene.keypressed(key)
-    if key == "escape" then
+    if InputActions.pressed("ui_back") then
         local SceneManager = require("src.SceneManager")
         SceneManager.pop()
     end

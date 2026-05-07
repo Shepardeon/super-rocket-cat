@@ -1,15 +1,16 @@
 local MenuScene = {}
+local InputActions = require("src.InputActions")
 
 function MenuScene.load() end
 function MenuScene.update(dt) end
 function MenuScene.unload() end
 
 function MenuScene.keypressed(key)
-    if key == "return" then
+    if InputActions.pressed("ui_confirm") then
         local SceneManager = require("src.SceneManager")
         local GameScene = require("src.scenes.GameScene")
         SceneManager.switch(GameScene)
-    elseif key == "escape" then
+    elseif InputActions.pressed("ui_back") then
         love.event.quit()
     end
 end
