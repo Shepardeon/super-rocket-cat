@@ -4,6 +4,8 @@ local SaveData = require("src.data.SaveData")
 
 local CURRENT_VERSION = 1
 
+SaveManager.currentSlot = nil
+
 local migrations = {}
 
 local function path_for_slot(slot)
@@ -76,6 +78,36 @@ function SaveManager.listSaves()
     end
     table.sort(saves)
     return saves
+end
+
+function SaveManager.listMeta()
+    local files = love.filesystem.getDirectoryItems("")
+    local metas = {}
+    for _, f in ipairs(files) do
+        local slot = string.match(f, "^save_(%d+)%.json$")
+        if slot then
+            slot = tonumber(slot)
+            local content, err = love.filesystem.read(f)
+            if content then
+                local tbl, _, json_err = dkjson.decode(content)
+                if type(tbl) == "table" then
+                    if type(tbl.meta) == "table" then
+                        tbl.meta.slot = slot
+                        metas[#metas + 1] = tbl.meta
+                    else
+                        metas[#metas + 1] = {
+                            slot = slot,
+                            name = tbl.name or "Sauvegarde",
+                            play_time = tbl.play_time or 0,
+                            global_level = SaveData.computeGlobalLevel(tbl.upgrades),
+                        }
+                    end
+                end
+            end
+        end
+    end
+    table.sort(metas, function(a, b) return a.slot < b.slot end)
+    return metas
 end
 
 function SaveManager.deleteSave(slot)

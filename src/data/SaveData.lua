@@ -13,6 +13,22 @@ function SaveData.new(name)
     }, SaveData)
 end
 
+function SaveData.computeGlobalLevel(upgrades)
+    local level = 0
+    if type(upgrades) == "table" then
+        for _, u in ipairs(upgrades) do
+            if type(u.level) == "number" then
+                level = level + u.level
+            end
+        end
+    end
+    return level
+end
+
+function SaveData:compute_global_level()
+    return SaveData.computeGlobalLevel(self.upgrades)
+end
+
 function SaveData:serialize()
     return {
         version = CURRENT_VERSION,
@@ -21,6 +37,11 @@ function SaveData:serialize()
         points = self.points,
         prestige_count = self.prestige_count,
         upgrades = self.upgrades,
+        meta = {
+            name = self.name,
+            play_time = self.play_time,
+            global_level = self:compute_global_level(),
+        },
     }
 end
 

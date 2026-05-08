@@ -4,4 +4,8 @@ return {
     menu_continue = "Continuer",
     menu_options = "Options",
     menu_quit = "Quitter",
+    continue_title = "Continuer une partie",
+    load_back = "Retour",
+    no_saves = "Aucune sauvegarde",
+    back_hint = "Echap pour retourner",
 }

@@ -63,6 +63,7 @@ local function execute_action(action)
         local slot = #saves + 1
         local data = SaveData.new("Partie " .. slot)
         SaveManager.save(slot, data)
+        SaveManager.currentSlot = slot
         local UpgradesScene = require("src.scenes.UpgradesScene")
         SceneManager.switch(UpgradesScene)
     elseif action == "continue" then
