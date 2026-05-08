@@ -1,23 +1,28 @@
 local InputActions = {}
 
 local mappings = {
-    move_left   = { key = "left",   gamepad = "dpleft" },
-    move_right  = { key = "right",  gamepad = "dpright" },
-    qte_action  = { key = "space",  gamepad = "a" },
-    pause       = { key = "escape", gamepad = "start" },
-    ui_confirm  = { key = "return", gamepad = "a" },
-    ui_back     = { key = "escape", gamepad = "b" },
+    move_left = { key = "left", gamepad = "dpleft" },
+    move_right = { key = "right", gamepad = "dpright" },
+    move_up = { key = "up", gamepad = "dpup" },
+    move_down = { key = "down", gamepad = "dpdown" },
+    qte_action = { key = "space", gamepad = "a" },
+    pause = { key = "escape", gamepad = "start" },
+    ui_confirm = { key = "return", gamepad = "a" },
+    ui_back = { key = "escape", gamepad = "b" },
 }
 
 local axis_bindings = {
-    move_left  = { axis = "leftx", threshold = -0.5 },
+    move_left = { axis = "leftx", threshold = -0.5 },
     move_right = { axis = "leftx", threshold = 0.5 },
+    move_up = { axis = "lefty", threshold = -0.5 },
+    move_down = { axis = "lefty", threshold = 0.5 },
 }
 
 local keys = {}
 local buttons = {}
 local axes = {}
 local just_pressed = {}
+local axis_states = {}
 
 local function findActions(key, field)
     for action, mapping in pairs(mappings) do
@@ -47,6 +52,16 @@ end
 
 function InputActions.gamepadaxis(joystick, axis, value)
     axes[axis] = value
+    for action, binding in pairs(axis_bindings) do
+        if binding.axis == axis then
+            local was = axis_states[action] or false
+            local is = binding.threshold > 0 and value > binding.threshold or binding.threshold < 0 and value < binding.threshold
+            if is and not was then
+                just_pressed[action] = true
+            end
+            axis_states[action] = is
+        end
+    end
 end
 
 function InputActions.pressed(action)
@@ -55,15 +70,25 @@ end
 
 function InputActions.isDown(action)
     local mapping = mappings[action]
-    if not mapping then return false end
-    if mapping.key and keys[mapping.key] then return true end
-    if mapping.gamepad and buttons[mapping.gamepad] then return true end
+    if not mapping then
+        return false
+    end
+    if mapping.key and keys[mapping.key] then
+        return true
+    end
+    if mapping.gamepad and buttons[mapping.gamepad] then
+        return true
+    end
     local axis = axis_bindings[action]
     if axis then
         local val = axes[axis.axis]
         if val then
-            if axis.threshold > 0 and val > axis.threshold then return true end
-            if axis.threshold < 0 and val < axis.threshold then return true end
+            if axis.threshold > 0 and val > axis.threshold then
+                return true
+            end
+            if axis.threshold < 0 and val < axis.threshold then
+                return true
+            end
         end
     end
     return false

@@ -57,4 +57,24 @@ function SceneManager.keypressed(key)
     end
 end
 
+function SceneManager.mousemoved(x, y)
+    if #stack == 0 then return end
+    local top = stack[#stack]
+    if top.mousemoved then
+        top.mousemoved(x, y)
+    end
+end
+
+function SceneManager.mousepressed(x, y, button)
+    if #stack == 0 then return end
+    local top = stack[#stack]
+    if top.mousepressed then
+        top.mousepressed(x, y, button)
+    end
+end
+
+function SceneManager.is_top(scene)
+    return #stack > 0 and stack[#stack] == scene
+end
+
 return SceneManager

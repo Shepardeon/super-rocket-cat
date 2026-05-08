@@ -40,3 +40,11 @@ end
 function love.gamepadaxis(joystick, axis, value)
     InputActions.gamepadaxis(joystick, axis, value)
 end
+
+function love.mousemoved(x, y)
+    SceneManager.mousemoved(x, y)
+end
+
+function love.mousepressed(x, y, button)
+    SceneManager.mousepressed(x, y, button)
+end
