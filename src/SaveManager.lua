@@ -1,5 +1,5 @@
 local SaveManager = {}
-local dkjson = require("lib.dkjson")
+local JsonStore = require("src.JsonStore")
 local SaveData = require("src.data.SaveData")
 
 local CURRENT_VERSION = 1
@@ -32,38 +32,16 @@ end
 
 function SaveManager.save(slot, saveData)
     local path = path_for_slot(slot)
-    local tbl = saveData:serialize()
-    local json, err = dkjson.encode(tbl, { indent = true })
-    if not json then
-        return false, "Erreur serialisation: " .. tostring(err)
-    end
-    local ok, write_err = pcall(love.filesystem.write, path, json)
-    if not ok or write_err == false then
-        return false, "Erreur ecriture fichier: " .. tostring(write_err)
-    end
-    return true
+    return JsonStore.write(path, saveData:serialize())
 end
 
 function SaveManager.load(slot)
     local path = path_for_slot(slot)
-    if not love.filesystem.getInfo(path) then
-        return nil, "Aucune sauvegarde trouvee"
-    end
-    ---@type string, number|string|nil
-    local content, read_err = love.filesystem.read(path)
-    if not content then
-        return nil, "Erreur lecture fichier: " .. tostring(read_err)
-    end
-    local tbl, _, json_err = dkjson.decode(content)
-    if type(tbl) ~= "table" then
-        local msg = "Fichier de sauvegarde corrompu"
-        if json_err then msg = msg .. ": " .. json_err end
-        return nil, msg
-    end
-    tbl, read_err = migrate(tbl)
-    if not tbl then
-        return nil, read_err
-    end
+    local tbl = JsonStore.read(path)
+    if not tbl then return nil, "Aucune sauvegarde trouvee" end
+    local err
+    tbl, err = migrate(tbl)
+    if not tbl then return nil, err end
     return SaveData.deserialize(tbl)
 end
 
@@ -87,21 +65,18 @@ function SaveManager.listMeta()
         local slot = string.match(f, "^save_(%d+)%.json$")
         if slot then
             slot = tonumber(slot)
-            local content, err = love.filesystem.read(f)
-            if content then
-                local tbl, _, json_err = dkjson.decode(content)
-                if type(tbl) == "table" then
-                    if type(tbl.meta) == "table" then
-                        tbl.meta.slot = slot
-                        metas[#metas + 1] = tbl.meta
-                    else
-                        metas[#metas + 1] = {
-                            slot = slot,
-                            name = tbl.name or "Sauvegarde",
-                            play_time = tbl.play_time or 0,
-                            global_level = SaveData.computeGlobalLevel(tbl.upgrades),
-                        }
-                    end
+            local tbl = JsonStore.read(f)
+            if tbl then
+                if type(tbl.meta) == "table" then
+                    tbl.meta.slot = slot
+                    metas[#metas + 1] = tbl.meta
+                else
+                    metas[#metas + 1] = {
+                        slot = slot,
+                        name = tbl.name or "Sauvegarde",
+                        play_time = tbl.play_time or 0,
+                        global_level = SaveData.computeGlobalLevel(tbl.upgrades),
+                    }
                 end
             end
         end
@@ -111,15 +86,7 @@ function SaveManager.listMeta()
 end
 
 function SaveManager.deleteSave(slot)
-    local path = path_for_slot(slot)
-    if not love.filesystem.getInfo(path) then
-        return false, "Aucune sauvegarde trouvee"
-    end
-    local ok, err = pcall(love.filesystem.remove, path)
-    if not ok then
-        return false, "Erreur suppression: " .. tostring(err)
-    end
-    return true
+    return JsonStore.delete(path_for_slot(slot))
 end
 
 return SaveManager

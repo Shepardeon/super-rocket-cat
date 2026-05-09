@@ -5,7 +5,7 @@ local Localizer = require("src.Localizer")
 local AudioManager = require("src.AudioManager")
 local OptionsManager = require("src.OptionsManager")
 local ConfirmDialog = require("src.ui.ConfirmDialog")
-local OptionsData = require("data.OptionsData")
+local OptionsData = require("src.data.OptionsData")
 
 -- Tabs
 local tabs = {
