@@ -46,6 +46,7 @@ function ConfirmDialog.new(opts)
         onCancel = opts.onCancel or function() end,
         active = true,
         resolved = false,
+        justOpened = true,
         choice = 1,
         font = love.graphics.newFont(24),
         rects = {},
@@ -58,6 +59,11 @@ end
 
 function ConfirmDialog:update(dt)
     if not self:isOpen() then
+        return
+    end
+
+    if self.justOpened then
+        self.justOpened = false
         return
     end
 
