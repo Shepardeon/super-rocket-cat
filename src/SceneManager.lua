@@ -77,6 +77,26 @@ function SceneManager.keypressed(key)
     end
 end
 
+function SceneManager.gamepadpressed(joystick, button)
+    if #stack == 0 then
+        return
+    end
+    local top = stack[#stack]
+    if top.gamepadpressed then
+        top.gamepadpressed(joystick, button)
+    end
+end
+
+function SceneManager.gamepadaxis(joystick, axis, value)
+    if #stack == 0 then
+        return
+    end
+    local top = stack[#stack]
+    if top.gamepadaxis then
+        top.gamepadaxis(joystick, axis, value)
+    end
+end
+
 function SceneManager.mousemoved(x, y)
     if #stack == 0 then
         return

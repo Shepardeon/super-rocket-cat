@@ -2,9 +2,12 @@ local SceneManager = require("src.SceneManager")
 local MenuScene = require("src.scenes.MenuScene")
 local InputActions = require("src.InputActions")
 local AudioManager = require("src.AudioManager")
+local OptionsManager = require("src.OptionsManager")
 
 function love.load()
     love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
+    local opts, _ = OptionsManager.load()
+    OptionsManager.apply(opts)
     SceneManager.push(MenuScene)
     AudioManager.load()
 end
@@ -30,6 +33,7 @@ end
 
 function love.gamepadpressed(joystick, button)
     InputActions.gamepadpressed(joystick, button)   -- MUST be first: populates just_pressed for pressed()
+    SceneManager.gamepadpressed(joystick, button)   -- direct gamepad event for listening mode
     SceneManager.keypressed(button)                 -- depends on InputActions state from above
 end
 
@@ -39,6 +43,7 @@ end
 
 function love.gamepadaxis(joystick, axis, value)
     InputActions.gamepadaxis(joystick, axis, value)
+    SceneManager.gamepadaxis(joystick, axis, value)
 end
 
 function love.mousemoved(x, y)

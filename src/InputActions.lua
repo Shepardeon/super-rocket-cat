@@ -1,6 +1,15 @@
 local InputActions = {}
 
-local mappings = {
+local function deep_copy(t)
+    if type(t) ~= "table" then return t end
+    local out = {}
+    for k, v in pairs(t) do
+        out[k] = deep_copy(v)
+    end
+    return out
+end
+
+local default_mappings = {
     move_left = { key = "left", gamepad = "dpleft" },
     move_right = { key = "right", gamepad = "dpright" },
     move_up = { key = "up", gamepad = "dpup" },
@@ -12,12 +21,16 @@ local mappings = {
     ui_delete = { key = "delete", gamepad = "y" },
 }
 
-local axis_bindings = {
+local default_axis_bindings = {
     move_left = { axis = "leftx", threshold = -0.5 },
     move_right = { axis = "leftx", threshold = 0.5 },
     move_up = { axis = "lefty", threshold = -0.5 },
     move_down = { axis = "lefty", threshold = 0.5 },
 }
+
+local mappings = deep_copy(default_mappings)
+
+local axis_bindings = deep_copy(default_axis_bindings)
 
 local keys = {}
 local buttons = {}
@@ -103,8 +116,36 @@ function InputActions.getMapping(action)
     return mappings[action]
 end
 
+function InputActions.getAxisBinding(action)
+    return axis_bindings[action]
+end
+
 function InputActions.clearPressed()
     just_pressed = {}
+end
+
+function InputActions.getAllMappings()
+    return deep_copy(mappings)
+end
+
+function InputActions.setAllMappings(tbl)
+    mappings = deep_copy(tbl)
+end
+
+function InputActions.getAllAxisBindings()
+    return deep_copy(axis_bindings)
+end
+
+function InputActions.setAllAxisBindings(tbl)
+    axis_bindings = deep_copy(tbl)
+end
+
+function InputActions.getDefaultMappings()
+    return deep_copy(default_mappings)
+end
+
+function InputActions.getDefaultAxisBindings()
+    return deep_copy(default_axis_bindings)
 end
 
 return InputActions
