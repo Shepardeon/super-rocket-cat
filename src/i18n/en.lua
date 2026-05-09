@@ -8,4 +8,9 @@ return {
     load_back = "Back",
     no_saves = "No saves found",
     back_hint = "ESC to go back",
+    delete_hint = "Delete to remove",
+    confirm_delete = "Delete %s?",
+    confirm_yes = "Yes",
+    confirm_no = "No",
+    confirm_message = "Confirm?",
 }

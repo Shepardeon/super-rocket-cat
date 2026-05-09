@@ -1,12 +1,16 @@
 local LoadGameScene = {}
+local SceneManager = require("src.SceneManager")
 local InputActions = require("src.InputActions")
 local SaveManager = require("src.SaveManager")
 local Localizer = require("src.Localizer")
+local ConfirmDialog = require("src.ui.ConfirmDialog")
+local UpgradesScene = require("src.scenes.UpgradesScene")
 
 local saves_data = {}
 local selected = 1
 local item_rects = {}
 local item_font
+local dialog
 
 local function format_time(seconds)
     local h = math.floor(seconds / 3600)
@@ -49,14 +53,40 @@ function LoadGameScene.load()
     item_font = love.graphics.newFont(24)
     saves_data = SaveManager.listMeta()
     selected = 1
+    dialog = nil
     compute_rects()
 end
 
 function LoadGameScene.unload() end
 
 function LoadGameScene.update(dt)
+    if dialog and dialog:isOpen() then
+        dialog:update(dt)
+        return
+    end
+
+    if InputActions.pressed("ui_delete") then
+        if not is_back(selected) and #saves_data > 0 then
+            local meta = saves_data[selected]
+            local msg = string.format(Localizer.get("confirm_delete"), meta.name)
+            local slot = meta.slot
+            dialog = ConfirmDialog.new({
+                message = msg,
+                onConfirm = function()
+                    SaveManager.deleteSave(slot)
+                    saves_data = SaveManager.listMeta()
+                    selected = math.min(selected, math.max(#saves_data, 1))
+                    compute_rects()
+                    if #saves_data == 0 then
+                        SceneManager.pop()
+                    end
+                end,
+            })
+        end
+        return
+    end
+
     if InputActions.pressed("ui_back") then
-        local SceneManager = require("src.SceneManager")
         SceneManager.pop()
         return
     end
@@ -67,18 +97,19 @@ function LoadGameScene.update(dt)
         selected = ((selected - 2) % total_items()) + 1
     elseif InputActions.pressed("ui_confirm") then
         if is_back(selected) then
-            local SceneManager = require("src.SceneManager")
             SceneManager.pop()
         else
             SaveManager.currentSlot = saves_data[selected].slot
-            local UpgradesScene = require("src.scenes.UpgradesScene")
-            local SceneManager = require("src.SceneManager")
             SceneManager.switch(UpgradesScene)
         end
     end
 end
 
 function LoadGameScene.mousemoved(x, y)
+    if dialog and dialog:isOpen() then
+        dialog:mousemoved(x, y)
+        return
+    end
     local hit = nil
     for i, rect in ipairs(item_rects) do
         if x >= rect.x and x <= rect.x + rect.w and y >= rect.y and y <= rect.y + rect.h then
@@ -92,16 +123,17 @@ function LoadGameScene.mousemoved(x, y)
 end
 
 function LoadGameScene.mousepressed(x, y, button)
+    if dialog and dialog:isOpen() then
+        dialog:mousepressed(x, y, button)
+        return
+    end
     if button ~= 1 then return end
     for i, rect in ipairs(item_rects) do
         if x >= rect.x and x <= rect.x + rect.w and y >= rect.y and y <= rect.y + rect.h then
             if is_back(i) then
-                local SceneManager = require("src.SceneManager")
                 SceneManager.pop()
             else
                 SaveManager.currentSlot = saves_data[i].slot
-                local UpgradesScene = require("src.scenes.UpgradesScene")
-                local SceneManager = require("src.SceneManager")
                 SceneManager.switch(UpgradesScene)
             end
             return
@@ -130,6 +162,9 @@ function LoadGameScene.draw()
                 love.graphics.printf(text, 0, y, 1280, "center")
             end
         end
+
+        love.graphics.setColor(0.5, 0.5, 0.5)
+        love.graphics.printf(Localizer.get("delete_hint"), 0, 680, 1280, "center")
     end
 
     local back_y = #saves_data == 0 and 380 or 150 + #saves_data * 50 + 20
@@ -140,6 +175,10 @@ function LoadGameScene.draw()
     else
         love.graphics.setColor(1, 1, 1)
         love.graphics.printf(back_label, 0, back_y, 1280, "center")
+    end
+
+    if dialog then
+        dialog:draw()
     end
 end
 

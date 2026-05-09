@@ -8,4 +8,9 @@ return {
     load_back = "Retour",
     no_saves = "Aucune sauvegarde",
     back_hint = "Echap pour retourner",
+    delete_hint = "Suppr pour supprimer",
+    confirm_delete = "Supprimer %s ?",
+    confirm_yes = "Oui",
+    confirm_no = "Non",
+    confirm_message = "Confirmer ?",
 }

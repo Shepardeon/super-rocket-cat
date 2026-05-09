@@ -9,6 +9,7 @@ local mappings = {
     pause = { key = "escape", gamepad = "start" },
     ui_confirm = { key = "return", gamepad = "a" },
     ui_back = { key = "escape", gamepad = "b" },
+    ui_delete = { key = "delete", gamepad = "y" },
 }
 
 local axis_bindings = {
