@@ -1,38 +1,54 @@
 local SceneManager = {}
 local stack = {}
 
-function SceneManager.push(scene)
+function SceneManager.push(scene, skip_deactivate)
+    if not skip_deactivate then
+        local top = stack[#stack]
+        if top and top.deactivate then
+            top.deactivate()
+        end
+    end
+
     table.insert(stack, scene)
     if scene.load then
         scene.load()
     end
+    if scene.activate then
+        scene.activate()
+    end
 end
 
-function SceneManager.pop()
+function SceneManager.pop(skip_activate)
     if #stack == 0 then
         love.event.quit()
         return
     end
+
     local top = stack[#stack]
     if top.unload then
         top.unload()
     end
     table.remove(stack, #stack)
+
+    if not skip_activate then
+        top = stack[#stack]
+        if top and top.activate then
+            top.activate()
+        end
+    end
 end
 
 function SceneManager.switch(scene)
     if #stack > 0 then
-        local top = stack[#stack]
-        if top.unload then
-            top.unload()
-        end
-        table.remove(stack, #stack)
+        SceneManager.pop(true)
     end
-    SceneManager.push(scene)
+    SceneManager.push(scene, true)
 end
 
 function SceneManager.update(dt)
-    if #stack == 0 then return end
+    if #stack == 0 then
+        return
+    end
     local top = stack[#stack]
     if top.update then
         top.update(dt)
@@ -40,7 +56,9 @@ function SceneManager.update(dt)
 end
 
 function SceneManager.draw()
-    if #stack == 0 then return end
+    if #stack == 0 then
+        return
+    end
     for i = 1, #stack do
         local scene = stack[i]
         if scene.draw then
@@ -50,7 +68,9 @@ function SceneManager.draw()
 end
 
 function SceneManager.keypressed(key)
-    if #stack == 0 then return end
+    if #stack == 0 then
+        return
+    end
     local top = stack[#stack]
     if top.keypressed then
         top.keypressed(key)
@@ -58,7 +78,9 @@ function SceneManager.keypressed(key)
 end
 
 function SceneManager.mousemoved(x, y)
-    if #stack == 0 then return end
+    if #stack == 0 then
+        return
+    end
     local top = stack[#stack]
     if top.mousemoved then
         top.mousemoved(x, y)
@@ -66,7 +88,9 @@ function SceneManager.mousemoved(x, y)
 end
 
 function SceneManager.mousepressed(x, y, button)
-    if #stack == 0 then return end
+    if #stack == 0 then
+        return
+    end
     local top = stack[#stack]
     if top.mousepressed then
         top.mousepressed(x, y, button)

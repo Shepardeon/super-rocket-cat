@@ -99,7 +99,7 @@ function ConfirmDialog:draw()
     local labels = { Localizer.get("confirm_yes"), Localizer.get("confirm_no") }
     local y = 340
     local zone_w = 200
-    local x_positions = { 540, 740 }
+    local x_positions = { 440, 640 }
     local h = font:getHeight()
     self.rects = {}
 

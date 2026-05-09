@@ -9,8 +9,8 @@ local SaveData = require("src.data.SaveData")
 local items = {
     { key = "menu_new_game", action = "new_game" },
     { key = "menu_continue", action = "continue" },
-    { key = "menu_options",  action = "options" },
-    { key = "menu_quit",     action = "quit" },
+    { key = "menu_options", action = "options" },
+    { key = "menu_quit", action = "quit" },
 }
 
 local selected = 1
@@ -80,13 +80,16 @@ end
 function MenuScene.load()
     title_font = love.graphics.newFont(48)
     item_font = love.graphics.newFont(24)
+    AudioManager.playMusic("menu")
+end
+
+function MenuScene.activate()
     refresh_saves()
     selected = 1
     if is_disabled(selected) then
         selected = next_enabled(selected, 1)
     end
     compute_rects()
-    AudioManager.playMusic("menu")
 end
 
 function MenuScene.unload() end
@@ -128,7 +131,9 @@ function MenuScene.mousemoved(x, y)
 end
 
 function MenuScene.mousepressed(x, y, button)
-    if button ~= 1 then return end
+    if button ~= 1 then
+        return
+    end
     for i, rect in ipairs(item_rects) do
         if x >= rect.x and x <= rect.x + rect.w and y >= rect.y and y <= rect.y + rect.h then
             if not is_disabled(i) then
@@ -141,7 +146,9 @@ function MenuScene.mousepressed(x, y, button)
 end
 
 function MenuScene.draw()
-    if not SceneManager.is_top(MenuScene) then return end
+    if not SceneManager.is_top(MenuScene) then
+        return
+    end
     love.graphics.setFont(title_font)
     love.graphics.setColor(1, 1, 1)
     love.graphics.printf(Localizer.get("menu_title"), 0, TITLE_Y, 1280, "center")
