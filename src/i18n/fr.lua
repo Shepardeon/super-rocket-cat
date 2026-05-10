@@ -44,4 +44,43 @@ return {
     input_down = "Bas",
 
     upgrades_points = "Points : %d",
+    upgrades_title = "Améliorations",
+    upgrades_back = "Retour",
+
+    upgrade_level = "Niv. %d/%d",
+    upgrade_max = "MAX",
+    upgrade_cost = "Coût : %d pts",
+    btn_launch = "Lancement !",
+
+    upgrade_engine_name = "Moteur",
+    upgrade_engine_desc = "Augmente la vitesse de vol maximale",
+    upgrade_engine_effect = "Vitesse max : %d px/s",
+
+    upgrade_hull_name = "Coque",
+    upgrade_hull_desc = "Augmente les PV de la fusée",
+    upgrade_hull_effect = "PV : %d",
+
+    upgrade_tank_name = "Réservoir",
+    upgrade_tank_desc = "Augmente la capacité en carburant",
+    upgrade_tank_effect = "Carburant : %d",
+
+    upgrade_fins_name = "Ailerons",
+    upgrade_fins_desc = "Améliore la maniabilité",
+    upgrade_fins_effect = "Maniabilité : x%.1f",
+
+    upgrade_magnet_name = "Aimant",
+    upgrade_magnet_desc = "Attire les bonus à proximité",
+    upgrade_magnet_effect = "Aimant : %d px",
+
+    upgrade_multiplier_name = "Multiplicateur",
+    upgrade_multiplier_desc = "Multiplie les points gagnés",
+    upgrade_multiplier_effect = "Points : x%.1f",
+
+    upgrade_auto_repair_name = "Auto-réparation",
+    upgrade_auto_repair_desc = "Répare les PV avec le temps",
+    upgrade_auto_repair_effect = "Réparation : %d PV/s",
+
+    upgrade_survival_qte_name = "QTE de survie",
+    upgrade_survival_qte_desc = "Augmente la fenêtre du QTE de survie",
+    upgrade_survival_qte_effect = "QTE : %.2fs",
 }

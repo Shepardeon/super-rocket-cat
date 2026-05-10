@@ -44,4 +44,43 @@ return {
     input_down = "Down",
 
     upgrades_points = "Points: %d",
+    upgrades_title = "Upgrades",
+    upgrades_back = "Back",
+
+    upgrade_level = "Lv. %d/%d",
+    upgrade_max = "MAX",
+    upgrade_cost = "Cost: %d pts",
+    btn_launch = "Launch!",
+
+    upgrade_engine_name = "Engine",
+    upgrade_engine_desc = "Increases maximum flight speed",
+    upgrade_engine_effect = "Max speed: %d px/s",
+
+    upgrade_hull_name = "Hull",
+    upgrade_hull_desc = "Increases rocket HP",
+    upgrade_hull_effect = "HP: %d",
+
+    upgrade_tank_name = "Tank",
+    upgrade_tank_desc = "Increases fuel capacity",
+    upgrade_tank_effect = "Fuel: %d",
+
+    upgrade_fins_name = "Fins",
+    upgrade_fins_desc = "Improves maneuverability",
+    upgrade_fins_effect = "Maneuver: x%.1f",
+
+    upgrade_magnet_name = "Magnet",
+    upgrade_magnet_desc = "Attracts nearby bonuses",
+    upgrade_magnet_effect = "Magnet: %d px",
+
+    upgrade_multiplier_name = "Multiplier",
+    upgrade_multiplier_desc = "Multiplies points earned",
+    upgrade_multiplier_effect = "Points: x%.1f",
+
+    upgrade_auto_repair_name = "Auto-Repair",
+    upgrade_auto_repair_desc = "Slowly repairs HP over time",
+    upgrade_auto_repair_effect = "Repair: %d HP/s",
+
+    upgrade_survival_qte_name = "Survival QTE",
+    upgrade_survival_qte_desc = "Increases survival QTE window",
+    upgrade_survival_qte_effect = "QTE: %.2fs",
 }

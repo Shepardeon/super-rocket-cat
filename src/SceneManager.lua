@@ -117,6 +117,16 @@ function SceneManager.mousepressed(x, y, button)
     end
 end
 
+function SceneManager.wheelmoved(x, y)
+    if #stack == 0 then
+        return
+    end
+    local top = stack[#stack]
+    if top.wheelmoved then
+        top.wheelmoved(x, y)
+    end
+end
+
 function SceneManager.is_top(scene)
     return #stack > 0 and stack[#stack] == scene
 end
