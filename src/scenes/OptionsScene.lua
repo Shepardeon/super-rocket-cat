@@ -6,58 +6,45 @@ local AudioManager = require("src.AudioManager")
 local OptionsManager = require("src.OptionsManager")
 local ConfirmDialog = require("src.ui.ConfirmDialog")
 local OptionsData = require("src.data.OptionsData")
+local Slider = require("src.ui.Slider")
 
+-- ============================================================
 -- Tabs
+-- ============================================================
 local tabs = {
     { key = "tab_controls", id = "controls", enabled = true },
-    { key = "tab_audio", id = "audio", enabled = false },
+    { key = "tab_audio", id = "audio", enabled = true },
     { key = "tab_language", id = "language", enabled = false },
 }
 
 local active_tab
 local tab_rects = {}
 
--- Options state
+-- ============================================================
+-- Shared options state
+-- ============================================================
 local original_options
 local working_options
 local dirty = false
 local dialog
 
--- Configurable actions
-local configurable_actions = {
-    "move_left",
-    "move_right",
-    "move_up",
-    "move_down",
-    "qte_action",
-    "pause",
-}
+-- ============================================================
+-- Layout constants
+-- ============================================================
+local TITLE_Y = 50
+local TAB_Y = 110
+local TAB_W = 200
+local TAB_H = 36
+local TAB_SPACING = 20
 
-local COL_ACTION = 1
-local COL_KEY = 2
-local COL_GAMEPAD = 3
-local COL_AXIS = 4
-local COL_COUNT = 4
+local title_font
+local tab_font
+local cell_font
+local header_font
 
-local selected_row = 1
-local selected_col = COL_KEY
-
--- Listening state
-local listening = false
-local listening_row
-local listening_col
-local listening_timer = 0
-
--- Cell grid
-local cell_rects = {}
-
--- Save button
-local SAVE_BTN_W = 200
-local SAVE_BTN_H = 40
-local save_btn_rect = { x = 0, y = 0, w = SAVE_BTN_W, h = SAVE_BTN_H }
-local save_btn_hover = false
-
--- Display name maps
+-- ============================================================
+-- Display name maps (shared)
+-- ============================================================
 local key_display = {
     left = Localizer.get("input_left"),
     right = Localizer.get("input_right"),
@@ -169,36 +156,52 @@ local function format_axis(binding)
     return base
 end
 
--- Layout constants
-local TITLE_Y = 50
-local TAB_Y = 110
-local TAB_W = 200
-local TAB_H = 36
-local TAB_SPACING = 20
+-- ============================================================
+-- Save button (shared)
+-- ============================================================
+local SAVE_BTN_W = 200
+local SAVE_BTN_H = 40
+local save_btn_rect = { x = (1280 - SAVE_BTN_W) / 2, y = 0, w = SAVE_BTN_W, h = SAVE_BTN_H }
+local save_btn_hover = false
+local save_btn_focused = false
+
+-- ============================================================
+-- Controls tab
+-- ============================================================
 local TABLE_Y = 180
 local ROW_H = 36
 local COL_W = 156
 local COL_SPACING = 8
 local HEADER_H = 28
 
-local title_font
-local tab_font
-local cell_font
-local header_font
+local configurable_actions = {
+    "move_left",
+    "move_right",
+    "move_up",
+    "move_down",
+    "qte_action",
+    "pause",
+}
 
--- Tab helpers
-local function tab_count()
-    return #tabs
-end
+local COL_ACTION = 1
+local COL_KEY = 2
+local COL_GAMEPAD = 3
+local COL_AXIS = 4
+local COL_COUNT = 4
 
-local function compute_tab_rects()
-    local total_w = tab_count() * TAB_W + (tab_count() - 1) * TAB_SPACING
-    local start_x = (1280 - total_w) / 2
-    tab_rects = {}
-    for i in ipairs(tabs) do
-        local x = start_x + (i - 1) * (TAB_W + TAB_SPACING)
-        tab_rects[i] = { x = x, y = TAB_Y, w = TAB_W, h = TAB_H }
-    end
+local selected_row = 1
+local selected_col = COL_KEY
+local listening = false
+local listening_row
+local listening_col
+local listening_timer = 0
+local cell_rects = {}
+
+local function end_listening()
+    listening = false
+    listening_row = nil
+    listening_col = nil
+    listening_timer = 0
 end
 
 local function compute_cell_rects()
@@ -215,12 +218,6 @@ local function compute_cell_rects()
     end
 end
 
-local function compute_save_btn_rect()
-    local table_bottom = TABLE_Y + HEADER_H + 4 + #configurable_actions * ROW_H
-    save_btn_rect.x = (1280 - SAVE_BTN_W) / 2
-    save_btn_rect.y = table_bottom + 24
-end
-
 local function find_cell(x, y)
     for row in ipairs(configurable_actions) do
         for col = 1, COL_COUNT do
@@ -233,7 +230,6 @@ local function find_cell(x, y)
     return nil, nil
 end
 
--- Override helpers
 local function assign_key(action, key)
     local wm = working_options.mappings
     for a, m in pairs(wm) do
@@ -277,83 +273,249 @@ local function assign_axis(action, axis, value)
     dirty = true
 end
 
+local function controls_activate()
+    selected_row = 1
+    selected_col = COL_KEY
+    end_listening()
+    compute_cell_rects()
+    local table_bottom = TABLE_Y + HEADER_H + 4 + #configurable_actions * ROW_H
+    save_btn_rect.y = table_bottom + 24
+end
+
+local function controls_deactivate()
+    end_listening()
+    save_btn_focused = false
+end
+
+-- ============================================================
+-- Audio tab
+-- ============================================================
+local sliders = {}
+local slider_focus = 1
+
+local function update_slider_focus()
+    for i, s in ipairs(sliders) do
+        s:setFocus(i == slider_focus)
+    end
+end
+
+local function audio_activate()
+    local SLIDER_W = 560
+    local SLIDER_H = 36
+    local SLIDER_X = (1280 - SLIDER_W) / 2
+    local SLIDER_Y1 = TABLE_Y
+    local SLIDER_Y2 = TABLE_Y + SLIDER_H + 60
+
+    sliders = {}
+
+    sliders[1] = Slider.new({
+        x = SLIDER_X,
+        y = SLIDER_Y1,
+        w = SLIDER_W,
+        h = SLIDER_H,
+        value = working_options.music_volume,
+        label = Localizer.get("slider_music_volume"),
+        on_change = function(v)
+            working_options.music_volume = v
+            AudioManager.setMusicVolume(v)
+            dirty = true
+        end,
+    })
+
+    sliders[2] = Slider.new({
+        x = SLIDER_X,
+        y = SLIDER_Y2,
+        w = SLIDER_W,
+        h = SLIDER_H,
+        value = working_options.sfx_volume,
+        label = Localizer.get("slider_sfx_volume"),
+        on_change = function(v)
+            working_options.sfx_volume = v
+            AudioManager.setSfxVolume(v)
+            dirty = true
+        end,
+    })
+
+    slider_focus = 1
+    update_slider_focus()
+    save_btn_rect.y = SLIDER_Y2 + SLIDER_H + 24
+end
+
+local function audio_deactivate()
+    sliders = {}
+    slider_focus = 1
+    save_btn_focused = false
+end
+
+local function draw_cell_text(x, y, w, h, text)
+    local font = love.graphics.getFont()
+    local tw = font:getWidth(text)
+    local th = font:getHeight()
+    local tx = x + (w - tw) / 2
+    local ty = y + (h - th) / 2
+    love.graphics.print(text, tx, ty)
+end
+
+local function draw_save_button()
+    if not dirty then
+        save_btn_focused = false
+        return
+    end
+
+    love.graphics.setFont(cell_font)
+    if save_btn_hover or save_btn_focused then
+        love.graphics.setColor(0.3, 0.7, 0.3)
+    else
+        love.graphics.setColor(0.2, 0.5, 0.2)
+    end
+    love.graphics.rectangle("fill", save_btn_rect.x, save_btn_rect.y, save_btn_rect.w, save_btn_rect.h)
+
+    if save_btn_focused then
+        love.graphics.setColor(1, 1, 0.4)
+        love.graphics.rectangle("line", save_btn_rect.x - 2, save_btn_rect.y - 2, save_btn_rect.w + 4, save_btn_rect.h + 4)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    draw_cell_text(save_btn_rect.x, save_btn_rect.y, save_btn_rect.w, save_btn_rect.h, Localizer.get("btn_save"))
+end
+
 local function save_options()
     OptionsManager.save(working_options)
     original_options = working_options:clone()
     dirty = false
+    save_btn_focused = false
 end
 
-local function end_listening()
-    listening = false
-    listening_row = nil
-    listening_col = nil
-    listening_timer = 0
-end
-
-local function prompt_unsaved()
-    dialog = ConfirmDialog.new({
-        message = Localizer.get("unsaved_changes"),
-        onConfirm = function()
-            dialog = nil
-            working_options = original_options:clone()
-            OptionsManager.apply(working_options)
-            dirty = false
-            SceneManager.pop()
-        end,
-        onCancel = function()
-            dialog = nil
-        end,
-    })
-end
-
--- Scene lifecycle
-function OptionsScene.load()
-    title_font = love.graphics.newFont(32)
-    tab_font = love.graphics.newFont(18)
-    cell_font = love.graphics.newFont(16)
-    header_font = love.graphics.newFont(14)
-end
-
-function OptionsScene.activate()
-    local load_ok, _ = OptionsManager.load()
-    if load_ok ~= nil then
-        original_options = load_ok
-        working_options = original_options:clone()
-        OptionsManager.apply(working_options)
-    else
-        original_options = OptionsData.new_default()
-        working_options = original_options:clone()
-    end
-    dirty = false
-    dialog = nil
-    active_tab = 1
-    selected_row = 1
-    selected_col = COL_KEY
-    end_listening()
-    save_btn_hover = false
-    compute_tab_rects()
-    compute_cell_rects()
-    compute_save_btn_rect()
-end
-
-function OptionsScene.unload()
-    tab_rects = {}
-    cell_rects = {}
-    original_options = nil
-    working_options = nil
-    dirty = false
-    dialog = nil
-    end_listening()
-end
-
-function OptionsScene.update(dt)
-    if dialog and dialog:isOpen() then
-        dialog:update(dt)
+local function audio_update(dt)
+    if #sliders == 0 then
         return
     end
 
+    if save_btn_focused then
+        if InputActions.pressed("move_up") then
+            save_btn_focused = false
+            slider_focus = #sliders
+            update_slider_focus()
+            AudioManager.playSfx("select")
+        elseif InputActions.pressed("ui_confirm") then
+            save_options()
+            AudioManager.playSfx("confirm")
+        end
+        return
+    end
+
+    if InputActions.pressed("move_up") then
+        slider_focus = slider_focus == 1 and #sliders or slider_focus - 1
+        update_slider_focus()
+        AudioManager.playSfx("select")
+    elseif InputActions.pressed("move_down") then
+        if slider_focus == #sliders then
+            if dirty then
+                save_btn_focused = true
+                AudioManager.playSfx("select")
+            else
+                slider_focus = 1
+                update_slider_focus()
+                AudioManager.playSfx("select")
+            end
+        else
+            slider_focus = slider_focus + 1
+            update_slider_focus()
+            AudioManager.playSfx("select")
+        end
+    end
+
+    for _, s in ipairs(sliders) do
+        s:update(dt)
+    end
+end
+
+local function audio_draw()
+    if #sliders == 0 then
+        return
+    end
+    love.graphics.push()
+    love.graphics.setFont(cell_font)
+    for _, s in ipairs(sliders) do
+        s:draw()
+    end
+    love.graphics.pop()
+end
+
+local function audio_keypressed(key)
+    return false
+end
+
+local function audio_gamepadpressed(joystick, button)
+    return false
+end
+
+local function audio_gamepadaxis(joystick, axis, value)
+    return false
+end
+
+local function audio_mousemoved(x, y)
+    for _, s in ipairs(sliders) do
+        s:mousemoved(x, y)
+    end
+end
+
+local function audio_mousepressed(x, y, button)
+    for _, s in ipairs(sliders) do
+        s:mousepressed(x, y, button)
+    end
+end
+
+-- ============================================================
+-- Tab switching
+-- ============================================================
+local function tab_activate()
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_activate()
+    elseif id == "audio" then
+        audio_activate()
+    end
+end
+
+local function tab_deactivate()
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_deactivate()
+    elseif id == "audio" then
+        audio_deactivate()
+    end
+end
+
+local function switchTab(delta)
+    local next_tab = active_tab + delta
+    while next_tab >= 1 and next_tab <= #tabs do
+        if tabs[next_tab].enabled then
+            tab_deactivate()
+            active_tab = next_tab
+            tab_activate()
+            return true
+        end
+        next_tab = next_tab + delta
+    end
+    return false
+end
+
+local function controls_update(dt)
     if listening then
         listening_timer = listening_timer + dt
+        return
+    end
+
+    if save_btn_focused then
+        if InputActions.pressed("move_up") then
+            save_btn_focused = false
+            selected_row = #configurable_actions
+            AudioManager.playSfx("select")
+        elseif InputActions.pressed("ui_confirm") then
+            save_options()
+            AudioManager.playSfx("confirm")
+        end
         return
     end
 
@@ -366,16 +528,23 @@ function OptionsScene.update(dt)
         if selected_row < #configurable_actions then
             selected_row = selected_row + 1
             AudioManager.playSfx("select")
+        elseif dirty then
+            save_btn_focused = true
+            AudioManager.playSfx("select")
         end
     elseif InputActions.pressed("move_left") then
         if selected_col > COL_ACTION then
             selected_col = selected_col - 1
             AudioManager.playSfx("select")
+        else
+            switchTab(-1)
         end
     elseif InputActions.pressed("move_right") then
         if selected_col < COL_COUNT then
             selected_col = selected_col + 1
             AudioManager.playSfx("select")
+        else
+            switchTab(1)
         end
     elseif InputActions.pressed("ui_confirm") then
         if selected_col ~= COL_ACTION then
@@ -387,88 +556,48 @@ function OptionsScene.update(dt)
     end
 end
 
-function OptionsScene.keypressed(key)
-    if dialog and dialog:isOpen() then
-        return
-    end
-
+local function controls_keypressed(key)
     if listening then
         if key == "escape" then
             end_listening()
-            return
+            return true
         end
         if listening_col == COL_KEY then
             assign_key(configurable_actions[listening_row], key)
             end_listening()
         end
-        return
+        return true
     end
-
-    if InputActions.pressed("ui_back") then
-        if dirty then
-            prompt_unsaved()
-        else
-            SceneManager.pop()
-        end
-    end
+    return false
 end
 
-function OptionsScene.gamepadpressed(joystick, button)
-    if dialog and dialog:isOpen() then
-        return
+local function controls_gamepadpressed(joystick, button)
+    if not listening or listening_col ~= COL_GAMEPAD then
+        return false
     end
-    if listening and listening_col == COL_GAMEPAD then
-        assign_gamepad(configurable_actions[listening_row], button)
-        end_listening()
-    end
+    assign_gamepad(configurable_actions[listening_row], button)
+    end_listening()
+    return true
 end
 
-function OptionsScene.gamepadaxis(joystick, axis, value)
-    if dialog and dialog:isOpen() then
-        return
+local function controls_gamepadaxis(joystick, axis, value)
+    if not listening or listening_col ~= COL_AXIS or math.abs(value) < 0.5 then
+        return false
     end
-    if listening and listening_col == COL_AXIS and math.abs(value) >= 0.5 then
-        assign_axis(configurable_actions[listening_row], axis, value)
-        end_listening()
-    end
+    assign_axis(configurable_actions[listening_row], axis, value)
+    end_listening()
+    return true
 end
 
-function OptionsScene.mousemoved(x, y)
-    if dialog and dialog:isOpen() then
-        dialog:mousemoved(x, y)
-        return
-    end
-
-    save_btn_hover = dirty
-        and x >= save_btn_rect.x
-        and x <= save_btn_rect.x + save_btn_rect.w
-        and y >= save_btn_rect.y
-        and y <= save_btn_rect.y + save_btn_rect.h
-
+local function controls_mousemoved(x, y)
     local row, col = find_cell(x, y)
     if row and col then
         selected_row = row
         selected_col = col
-        return
     end
 end
 
-function OptionsScene.mousepressed(x, y, button)
-    if button ~= 1 then
-        return
-    end
-
-    if dialog and dialog:isOpen() then
-        dialog:mousepressed(x, y, button)
-        return
-    end
-
-    if dirty and save_btn_hover then
-        save_options()
-        AudioManager.playSfx("confirm")
-        return
-    end
-
+local function controls_mousepressed(x, y, button)
     local row, col = find_cell(x, y)
     if row and col and col ~= COL_ACTION then
         selected_row = row
@@ -477,20 +606,24 @@ function OptionsScene.mousepressed(x, y, button)
         listening_row = row
         listening_col = col
         listening_timer = 0
-        return
+        return true
     end
+    return false
+end
 
-    for i, rect in ipairs(tab_rects) do
-        if x >= rect.x and x <= rect.x + rect.w and y >= rect.y and y <= rect.y + rect.h then
-            if tabs[i].enabled then
-                active_tab = i
-            end
-            return
-        end
+-- ============================================================
+-- Shared helpers
+-- ============================================================
+local function compute_tab_rects()
+    local total_w = #tabs * TAB_W + (#tabs - 1) * TAB_SPACING
+    local start_x = (1280 - total_w) / 2
+    tab_rects = {}
+    for i in ipairs(tabs) do
+        local x = start_x + (i - 1) * (TAB_W + TAB_SPACING)
+        tab_rects[i] = { x = x, y = TAB_Y, w = TAB_W, h = TAB_H }
     end
 end
 
--- Drawing helpers
 local function draw_tabs()
     love.graphics.setFont(tab_font)
     for i, tab in ipairs(tabs) do
@@ -521,16 +654,23 @@ local function draw_tabs()
     end
 end
 
-local function draw_cell_text(x, y, w, h, text)
-    local font = love.graphics.getFont()
-    local tw = font:getWidth(text)
-    local th = font:getHeight()
-    local tx = x + (w - tw) / 2
-    local ty = y + (h - th) / 2
-    love.graphics.print(text, tx, ty)
+local function prompt_unsaved()
+    dialog = ConfirmDialog.new({
+        message = Localizer.get("unsaved_changes"),
+        onConfirm = function()
+            dialog = nil
+            working_options = original_options:clone()
+            OptionsManager.apply(working_options)
+            dirty = false
+            SceneManager.pop()
+        end,
+        onCancel = function()
+            dialog = nil
+        end,
+    })
 end
 
-local function draw_controls_table()
+local function controls_draw()
     if not cell_rects[1] then
         return
     end
@@ -557,7 +697,7 @@ local function draw_controls_table()
         local mapping = working_options.mappings[action]
         local axis_binding = working_options.axis_bindings[action]
 
-        local is_selected = not listening and row == selected_row
+        local is_selected = not listening and not save_btn_focused and row == selected_row
         local is_listening_here = listening and row == listening_row
 
         for col = 1, COL_COUNT do
@@ -597,20 +737,57 @@ local function draw_controls_table()
     end
 end
 
-local function draw_save_button()
-    if not dirty then
+-- ============================================================
+-- Scene lifecycle
+-- ============================================================
+function OptionsScene.load()
+    title_font = love.graphics.newFont(32)
+    tab_font = love.graphics.newFont(18)
+    cell_font = love.graphics.newFont(16)
+    header_font = love.graphics.newFont(14)
+end
+
+function OptionsScene.activate()
+    local load_ok, _ = OptionsManager.load()
+    if load_ok ~= nil then
+        original_options = load_ok
+        working_options = original_options:clone()
+        OptionsManager.apply(working_options)
+    else
+        original_options = OptionsData.new_default()
+        working_options = original_options:clone()
+    end
+    dirty = false
+    dialog = nil
+    active_tab = 1
+    save_btn_hover = false
+    save_btn_focused = false
+    compute_tab_rects()
+    tab_activate()
+end
+
+function OptionsScene.unload()
+    tab_deactivate()
+    tab_rects = {}
+    original_options = nil
+    working_options = nil
+    dirty = false
+    dialog = nil
+    save_btn_hover = false
+end
+
+function OptionsScene.update(dt)
+    if dialog and dialog:isOpen() then
+        dialog:update(dt)
         return
     end
 
-    love.graphics.setFont(cell_font)
-    if save_btn_hover then
-        love.graphics.setColor(0.3, 0.7, 0.3)
-    else
-        love.graphics.setColor(0.2, 0.5, 0.2)
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_update(dt)
+    elseif id == "audio" then
+        audio_update(dt)
     end
-    love.graphics.rectangle("fill", save_btn_rect.x, save_btn_rect.y, save_btn_rect.w, save_btn_rect.h)
-    love.graphics.setColor(1, 1, 1)
-    draw_cell_text(save_btn_rect.x, save_btn_rect.y, save_btn_rect.w, save_btn_rect.h, Localizer.get("btn_save"))
 end
 
 function OptionsScene.draw()
@@ -625,19 +802,138 @@ function OptionsScene.draw()
 
     draw_tabs()
 
-    local active_id = tabs[active_tab].id
-    if active_id == "controls" then
-        draw_controls_table()
-        draw_save_button()
-    elseif active_id == "audio" or active_id == "language" then
-        love.graphics.setFont(cell_font)
-        love.graphics.setColor(0.6, 0.6, 0.6)
-        love.graphics.printf(Localizer.get("tab_coming_soon"), 0, TABLE_Y + 60, 1280, "center")
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_draw()
+    elseif id == "audio" then
+        audio_draw()
     end
+
+    draw_save_button()
 
     love.graphics.setFont(cell_font)
     love.graphics.setColor(0.45, 0.45, 0.45)
     love.graphics.printf(Localizer.get("back_hint"), 0, 680, 1280, "center")
+end
+
+function OptionsScene.keypressed(key)
+    if dialog and dialog:isOpen() then
+        return
+    end
+
+    if key == "tab" then
+        local lshift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
+        switchTab(lshift and -1 or 1)
+        return
+    end
+
+    local id = tabs[active_tab].id
+    local consumed = false
+    if id == "controls" then
+        consumed = controls_keypressed(key)
+    elseif id == "audio" then
+        consumed = audio_keypressed(key)
+    end
+    if consumed then
+        return
+    end
+
+    if InputActions.pressed("ui_back") then
+        if dirty then
+            prompt_unsaved()
+        else
+            SceneManager.pop()
+        end
+    end
+end
+
+function OptionsScene.gamepadpressed(joystick, button)
+    if dialog and dialog:isOpen() then
+        return
+    end
+
+    if button == "leftshoulder" then
+        switchTab(-1)
+        return
+    elseif button == "rightshoulder" then
+        switchTab(1)
+        return
+    end
+
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_gamepadpressed(joystick, button)
+    elseif id == "audio" then
+        audio_gamepadpressed(joystick, button)
+    end
+end
+
+function OptionsScene.gamepadaxis(joystick, axis, value)
+    if dialog and dialog:isOpen() then
+        return
+    end
+
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_gamepadaxis(joystick, axis, value)
+    elseif id == "audio" then
+        audio_gamepadaxis(joystick, axis, value)
+    end
+end
+
+function OptionsScene.mousemoved(x, y)
+    if dialog and dialog:isOpen() then
+        dialog:mousemoved(x, y)
+        return
+    end
+
+    save_btn_hover = dirty
+        and x >= save_btn_rect.x
+        and x <= save_btn_rect.x + save_btn_rect.w
+        and y >= save_btn_rect.y
+        and y <= save_btn_rect.y + save_btn_rect.h
+
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_mousemoved(x, y)
+    elseif id == "audio" then
+        audio_mousemoved(x, y)
+    end
+end
+
+function OptionsScene.mousepressed(x, y, button)
+    if button ~= 1 then
+        return
+    end
+
+    if dialog and dialog:isOpen() then
+        dialog:mousepressed(x, y, button)
+        return
+    end
+
+    if dirty and save_btn_hover then
+        save_options()
+        AudioManager.playSfx("confirm")
+        return
+    end
+
+    for i, rect in ipairs(tab_rects) do
+        if x >= rect.x and x <= rect.x + rect.w and y >= rect.y and y <= rect.y + rect.h then
+            if tabs[i].enabled and i ~= active_tab then
+                tab_deactivate()
+                active_tab = i
+                tab_activate()
+            end
+            return
+        end
+    end
+
+    local id = tabs[active_tab].id
+    if id == "controls" then
+        controls_mousepressed(x, y, button)
+    elseif id == "audio" then
+        audio_mousepressed(x, y, button)
+    end
 end
 
 return OptionsScene

@@ -1,4 +1,4 @@
---- ConfirmDialog — reusable modal confirmation dialog
+--- ConfirmDialog - reusable modal confirmation dialog
 --
 -- Usage:
 --   local dialog = ConfirmDialog.new({

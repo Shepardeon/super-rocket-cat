@@ -19,6 +19,8 @@ return {
     tab_audio = "Audio",
     tab_language = "Language",
     tab_coming_soon = "Coming soon",
+    slider_music_volume = "Music",
+    slider_sfx_volume = "SFX",
     action_move_left = "Move Left",
     action_move_right = "Move Right",
     action_move_up = "Move Up",
