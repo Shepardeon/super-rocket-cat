@@ -29,6 +29,26 @@ function SaveData:compute_global_level()
     return SaveData.computeGlobalLevel(self.upgrades)
 end
 
+function SaveData:add_points(amount)
+    local n = tonumber(amount)
+    if not n or n <= 0 then return false, "Amount must be positive" end
+    self.points = self.points + n
+    return true
+end
+
+function SaveData:spend_points(amount)
+    local n = tonumber(amount)
+    if not n or n <= 0 then return false, "Amount must be positive" end
+    if self.points < n then return false, "Insufficient points" end
+    self.points = self.points - n
+    return true
+end
+
+function SaveData:has_points(amount)
+    local n = tonumber(amount)
+    return self.points >= (n or 0)
+end
+
 function SaveData:serialize()
     return {
         version = CURRENT_VERSION,

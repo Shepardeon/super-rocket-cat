@@ -19,6 +19,10 @@ function Localizer.get(key)
     return key
 end
 
+function Localizer.getFormatted(key, ...)
+    return string.format(Localizer.get(key), ...)
+end
+
 local languages = { "fr", "en" }
 for _, lang in ipairs(languages) do
     package.loaded["src.i18n." .. lang] = nil

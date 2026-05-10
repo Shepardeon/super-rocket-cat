@@ -42,4 +42,6 @@ return {
     input_right = "Right",
     input_up = "Up",
     input_down = "Down",
+
+    upgrades_points = "Points: %d",
 }
