@@ -88,10 +88,12 @@ end
 
 function UpgradeCard:playBuyAnimation()
     self.buy_flash_timer = 0.3
+    self.deny_flash_timer = 0
 end
 
 function UpgradeCard:playDenyAnimation()
     self.deny_flash_timer = 0.5
+    self.buy_flash_timer = 0
     self.shake_elapsed = 0
 end
 

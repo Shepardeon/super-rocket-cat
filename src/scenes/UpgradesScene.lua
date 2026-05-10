@@ -168,6 +168,10 @@ function UpgradesScene.load()
     scroll_y = 0
     selected_idx = 1
     focus_launch = false
+    toast_text = nil
+    toast_timer = 0
+    nav_timer = 0
+    nav_repeating = false
     build_cards()
 end
 
