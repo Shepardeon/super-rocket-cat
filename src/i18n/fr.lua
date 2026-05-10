@@ -36,6 +36,8 @@ return {
     btn_save = "Enregistrer",
     btn_back = "Retour",
     controls_placeholder = "Configurez vos touches ci-dessous",
+    lang_en = "Anglais",
+    lang_fr = "Français",
     input_left = "Gauche",
     input_right = "Droit",
     input_up = "Haut",

@@ -14,7 +14,7 @@ local Slider = require("src.ui.Slider")
 local tabs = {
     { key = "tab_controls", id = "controls", enabled = true },
     { key = "tab_audio", id = "audio", enabled = true },
-    { key = "tab_language", id = "language", enabled = false },
+    { key = "tab_language", id = "language", enabled = true },
 }
 
 local active_tab
@@ -43,96 +43,10 @@ local cell_font
 local header_font
 
 -- ============================================================
--- Display name maps (shared)
+-- Display name maps (shared, rebuilt on language change)
 -- ============================================================
-local key_display = {
-    left = Localizer.get("input_left"),
-    right = Localizer.get("input_right"),
-    up = Localizer.get("input_up"),
-    down = Localizer.get("input_down"),
-    space = "SPACE",
-    escape = "ESC",
-    ["return"] = "ENTER",
-    delete = "DEL",
-    backspace = "BKSP",
-    tab = "TAB",
-    home = "HOME",
-    ["end"] = "END",
-    pageup = "PG UP",
-    pagedown = "PG DN",
-    rshift = "R SHIFT",
-    lshift = "L SHIFT",
-    rctrl = "R CTRL",
-    lctrl = "L CTRL",
-    ralt = "R ALT",
-    lalt = "L ALT",
-    comma = ",",
-    period = ".",
-    minus = "-",
-    equals = "=",
-    ["["] = "[",
-    ["]"] = "]",
-    backslash = "\\",
-    semicolon = ";",
-    apostrophe = "'",
-    grave = "`",
-    slash = "/",
-    a = "A",
-    b = "B",
-    c = "C",
-    d = "D",
-    e = "E",
-    f = "F",
-    g = "G",
-    h = "H",
-    i = "I",
-    j = "J",
-    k = "K",
-    l = "L",
-    m = "M",
-    n = "N",
-    o = "O",
-    p = "P",
-    q = "Q",
-    r = "R",
-    s = "S",
-    t = "T",
-    u = "U",
-    v = "V",
-    w = "W",
-    x = "X",
-    y = "Y",
-    z = "Z",
-    ["0"] = "0",
-    ["1"] = "1",
-    ["2"] = "2",
-    ["3"] = "3",
-    ["4"] = "4",
-    ["5"] = "5",
-    ["6"] = "6",
-    ["7"] = "7",
-    ["8"] = "8",
-    ["9"] = "9",
-}
-
-local gamepad_display = {
-    dpleft = "D-Pad " .. Localizer.get("input_left"),
-    dpright = "D-Pad " .. Localizer.get("input_right"),
-    dpup = "D-Pad " .. Localizer.get("input_up"),
-    dpdown = "D-Pad " .. Localizer.get("input_down"),
-    a = "A",
-    b = "B",
-    x = "X",
-    y = "Y",
-    start = "START",
-    back = "BACK",
-    leftshoulder = "LB",
-    rightshoulder = "RB",
-    lefttrigger = "LT",
-    righttrigger = "RT",
-    leftstick = "L3",
-    rightstick = "R3",
-}
+local key_display = {}
+local gamepad_display = {}
 
 local axis_display = {
     leftx = "Stick X",
@@ -142,6 +56,97 @@ local axis_display = {
     triggerleft = "Trig L",
     triggerright = "Trig R",
 }
+
+local function rebuild_display_maps()
+    key_display = {
+        left = Localizer.get("input_left"),
+        right = Localizer.get("input_right"),
+        up = Localizer.get("input_up"),
+        down = Localizer.get("input_down"),
+        space = "SPACE",
+        escape = "ESC",
+        ["return"] = "ENTER",
+        delete = "DEL",
+        backspace = "BKSP",
+        tab = "TAB",
+        home = "HOME",
+        ["end"] = "END",
+        pageup = "PG UP",
+        pagedown = "PG DN",
+        rshift = "R SHIFT",
+        lshift = "L SHIFT",
+        rctrl = "R CTRL",
+        lctrl = "L CTRL",
+        ralt = "R ALT",
+        lalt = "L ALT",
+        comma = ",",
+        period = ".",
+        minus = "-",
+        equals = "=",
+        ["["] = "[",
+        ["]"] = "]",
+        backslash = "\\",
+        semicolon = ";",
+        apostrophe = "'",
+        grave = "`",
+        slash = "/",
+        a = "A",
+        b = "B",
+        c = "C",
+        d = "D",
+        e = "E",
+        f = "F",
+        g = "G",
+        h = "H",
+        i = "I",
+        j = "J",
+        k = "K",
+        l = "L",
+        m = "M",
+        n = "N",
+        o = "O",
+        p = "P",
+        q = "Q",
+        r = "R",
+        s = "S",
+        t = "T",
+        u = "U",
+        v = "V",
+        w = "W",
+        x = "X",
+        y = "Y",
+        z = "Z",
+        ["0"] = "0",
+        ["1"] = "1",
+        ["2"] = "2",
+        ["3"] = "3",
+        ["4"] = "4",
+        ["5"] = "5",
+        ["6"] = "6",
+        ["7"] = "7",
+        ["8"] = "8",
+        ["9"] = "9",
+    }
+
+    gamepad_display = {
+        dpleft = "D-Pad " .. Localizer.get("input_left"),
+        dpright = "D-Pad " .. Localizer.get("input_right"),
+        dpup = "D-Pad " .. Localizer.get("input_up"),
+        dpdown = "D-Pad " .. Localizer.get("input_down"),
+        a = "A",
+        b = "B",
+        x = "X",
+        y = "Y",
+        start = "START",
+        back = "BACK",
+        leftshoulder = "LB",
+        rightshoulder = "RB",
+        lefttrigger = "LT",
+        righttrigger = "RT",
+        leftstick = "L3",
+        rightstick = "R3",
+    }
+end
 
 local function format_axis(binding)
     if not binding then
@@ -277,6 +282,7 @@ local function controls_activate()
     selected_row = 1
     selected_col = COL_KEY
     end_listening()
+    rebuild_display_maps()
     compute_cell_rects()
     local table_bottom = TABLE_Y + HEADER_H + 4 + #configurable_actions * ROW_H
     save_btn_rect.y = table_bottom + 24
@@ -467,6 +473,57 @@ local function audio_mousepressed(x, y, button)
 end
 
 -- ============================================================
+-- Language data (declared before tab switching / apply_language)
+-- ============================================================
+local language_options = {
+    { key = "lang_en", value = "en" },
+    { key = "lang_fr", value = "fr" },
+}
+local lang_selected = 1
+local lang_hover
+local lang_rects = {}
+local LANG_ROW_W = 300
+local LANG_ROW_H = 40
+local LANG_SPACING = 16
+
+-- ============================================================
+-- Language tab (functions needed by tab_activate/deactivate)
+-- ============================================================
+local function compute_lang_rects()
+    local total_h = #language_options * LANG_ROW_H + (#language_options - 1) * LANG_SPACING
+    local start_y = TABLE_Y + (300 - total_h) / 2
+    local start_x = (1280 - LANG_ROW_W) / 2
+    lang_rects = {}
+    for i in ipairs(language_options) do
+        lang_rects[i] = {
+            x = start_x,
+            y = start_y + (i - 1) * (LANG_ROW_H + LANG_SPACING),
+            w = LANG_ROW_W,
+            h = LANG_ROW_H,
+        }
+    end
+end
+
+local function language_activate()
+    for i, opt in ipairs(language_options) do
+        if opt.value == working_options.language then
+            lang_selected = i
+            break
+        end
+    end
+    lang_hover = nil
+    compute_lang_rects()
+    local last = lang_rects[#lang_rects]
+    save_btn_rect.y = (last and last.y + last.h or TABLE_Y) + 24
+end
+
+local function language_deactivate()
+    lang_rects = {}
+    lang_hover = nil
+    save_btn_focused = false
+end
+
+-- ============================================================
 -- Tab switching
 -- ============================================================
 local function tab_activate()
@@ -475,6 +532,8 @@ local function tab_activate()
         controls_activate()
     elseif id == "audio" then
         audio_activate()
+    elseif id == "language" then
+        language_activate()
     end
 end
 
@@ -484,6 +543,8 @@ local function tab_deactivate()
         controls_deactivate()
     elseif id == "audio" then
         audio_deactivate()
+    elseif id == "language" then
+        language_deactivate()
     end
 end
 
@@ -497,6 +558,111 @@ local function switchTab(delta)
             return true
         end
         next_tab = next_tab + delta
+    end
+    return false
+end
+
+local function apply_language()
+    local opt = language_options[lang_selected]
+    if opt.value ~= working_options.language then
+        working_options.language = opt.value
+        Localizer.setLanguage(opt.value)
+        dirty = true
+        tab_deactivate()
+        tab_activate()
+        AudioManager.playSfx("confirm")
+    end
+end
+
+local function language_update(dt)
+    if save_btn_focused then
+        if InputActions.pressed("move_up") then
+            save_btn_focused = false
+            lang_selected = #language_options
+            AudioManager.playSfx("select")
+        elseif InputActions.pressed("ui_confirm") then
+            save_options()
+            AudioManager.playSfx("confirm")
+        end
+        return
+    end
+
+    if InputActions.pressed("move_up") then
+        if lang_selected > 1 then
+            lang_selected = lang_selected - 1
+            AudioManager.playSfx("select")
+        end
+    elseif InputActions.pressed("move_down") then
+        if lang_selected < #language_options then
+            lang_selected = lang_selected + 1
+            AudioManager.playSfx("select")
+        elseif dirty then
+            save_btn_focused = true
+            AudioManager.playSfx("select")
+        end
+    elseif InputActions.pressed("ui_confirm") then
+        apply_language()
+    end
+end
+
+local function language_draw()
+    if #lang_rects == 0 then
+        return
+    end
+    love.graphics.setFont(cell_font)
+    for i, opt in ipairs(language_options) do
+        local r = lang_rects[i]
+        if not r then
+            break
+        end
+
+        local is_cursor = i == lang_selected
+        local is_hover = i == lang_hover
+        local is_actual = working_options.language == opt.value
+
+        if is_cursor or is_hover then
+            love.graphics.setColor(0.3, 0.5, 0.9, is_cursor and 0.4 or 0.2)
+            love.graphics.rectangle("fill", r.x, r.y, r.w, r.h)
+        end
+
+        local cx = r.x + 20
+        local cy = r.y + r.h / 2
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.circle("line", cx, cy, 8)
+        if is_actual then
+            love.graphics.circle("fill", cx, cy, 5)
+        end
+
+        local label = Localizer.get(opt.key)
+        love.graphics.printf(label, r.x + 40, r.y + (r.h - cell_font:getHeight()) / 2, LANG_ROW_W - 50, "left")
+    end
+end
+
+local function language_keypressed(key)
+    return false
+end
+
+local function language_mousemoved(x, y)
+    lang_hover = nil
+    for i, r in ipairs(lang_rects) do
+        if x >= r.x and x <= r.x + r.w and y >= r.y and y <= r.y + r.h then
+            lang_hover = i
+            lang_selected = i
+            return
+        end
+    end
+end
+
+local function language_mousepressed(x, y, button)
+    if button ~= 1 then
+        return false
+    end
+    for i, r in ipairs(lang_rects) do
+        if x >= r.x and x <= r.x + r.w and y >= r.y and y <= r.y + r.h then
+            lang_selected = i
+            apply_language()
+            return true
+        end
     end
     return false
 end
@@ -787,6 +953,8 @@ function OptionsScene.update(dt)
         controls_update(dt)
     elseif id == "audio" then
         audio_update(dt)
+    elseif id == "language" then
+        language_update(dt)
     end
 end
 
@@ -807,6 +975,8 @@ function OptionsScene.draw()
         controls_draw()
     elseif id == "audio" then
         audio_draw()
+    elseif id == "language" then
+        language_draw()
     end
 
     draw_save_button()
@@ -833,6 +1003,8 @@ function OptionsScene.keypressed(key)
         consumed = controls_keypressed(key)
     elseif id == "audio" then
         consumed = audio_keypressed(key)
+    elseif id == "language" then
+        consumed = language_keypressed(key)
     end
     if consumed then
         return
@@ -865,6 +1037,8 @@ function OptionsScene.gamepadpressed(joystick, button)
         controls_gamepadpressed(joystick, button)
     elseif id == "audio" then
         audio_gamepadpressed(joystick, button)
+    elseif id == "language" then
+        language_keypressed(button)
     end
 end
 
@@ -898,6 +1072,8 @@ function OptionsScene.mousemoved(x, y)
         controls_mousemoved(x, y)
     elseif id == "audio" then
         audio_mousemoved(x, y)
+    elseif id == "language" then
+        language_mousemoved(x, y)
     end
 end
 
@@ -933,6 +1109,8 @@ function OptionsScene.mousepressed(x, y, button)
         controls_mousepressed(x, y, button)
     elseif id == "audio" then
         audio_mousepressed(x, y, button)
+    elseif id == "language" then
+        language_mousepressed(x, y, button)
     end
 end
 

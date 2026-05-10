@@ -36,6 +36,8 @@ return {
     btn_save = "Save",
     btn_back = "Back",
     controls_placeholder = "Configure your key bindings below",
+    lang_en = "English",
+    lang_fr = "French",
     input_left = "Left",
     input_right = "Right",
     input_up = "Up",
