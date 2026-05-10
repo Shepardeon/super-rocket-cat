@@ -48,6 +48,9 @@ function UpgradeCard.new(x, y, w, h, upgrade_def)
         level = 0,
         points = 0,
         hovered = false,
+        buy_flash_timer = 0,
+        deny_flash_timer = 0,
+        shake_elapsed = 0,
     }, UpgradeCard)
 end
 
@@ -83,12 +86,43 @@ function UpgradeCard:isMaxed()
     return self.level >= self.def.max_level
 end
 
+function UpgradeCard:playBuyAnimation()
+    self.buy_flash_timer = 0.3
+end
+
+function UpgradeCard:playDenyAnimation()
+    self.deny_flash_timer = 0.5
+    self.shake_elapsed = 0
+end
+
+function UpgradeCard:updateAnimation(dt)
+    if self.buy_flash_timer > 0 then
+        self.buy_flash_timer = self.buy_flash_timer - dt
+    end
+    if self.deny_flash_timer > 0 then
+        self.deny_flash_timer = self.deny_flash_timer - dt
+        self.shake_elapsed = self.shake_elapsed + dt
+    end
+end
+
 function UpgradeCard:draw()
     local x, y, w, h = self.x, self.y, self.w, self.h
     local font = love.graphics.getFont()
     local fh = font:getHeight()
     local maxed = self:isMaxed()
     local can_afford = self:canAfford()
+
+    love.graphics.push()
+
+    if self.deny_flash_timer > 0 then
+        love.graphics.translate(math.sin(self.shake_elapsed * 60) * 4, 0)
+    elseif self.buy_flash_timer > 0 then
+        local t = 1 - self.buy_flash_timer / 0.3
+        local s = 1 + 0.06 * math.sin(math.pi * t)
+        love.graphics.translate(x + w / 2, y + h / 2)
+        love.graphics.scale(s, s)
+        love.graphics.translate(-(x + w / 2), -(y + h / 2))
+    end
 
     if maxed then
         love.graphics.setColor(0.15, 0.3, 0.15)
@@ -132,6 +166,18 @@ function UpgradeCard:draw()
         love.graphics.setColor(can_afford and 0.6 or 0.8, can_afford and 1 or 0.4, can_afford and 0.6 or 0.4)
         love.graphics.printf(cost_text, x + PAD, y + h - fh - PAD, w - PAD * 2, "left")
     end
+
+    if self.buy_flash_timer > 0 then
+        local a = math.min(self.buy_flash_timer / 0.3 * 0.35, 0.35)
+        love.graphics.setColor(0.2, 1, 0.2, a)
+        love.graphics.rectangle("fill", x, y, w, h, 4)
+    elseif self.deny_flash_timer > 0 then
+        local a = math.min(self.deny_flash_timer / 0.5 * 0.35, 0.35)
+        love.graphics.setColor(1, 0.2, 0.2, a)
+        love.graphics.rectangle("fill", x, y, w, h, 4)
+    end
+
+    love.graphics.pop()
 end
 
 function UpgradeCard:drawTooltip(scroll_offs)

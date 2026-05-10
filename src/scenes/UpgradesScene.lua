@@ -6,6 +6,7 @@ local Localizer = require("src.Localizer")
 local Upgrades = require("src.game.Upgrades")
 local UpgradeCard = require("src.ui.UpgradeCard")
 local RocketVisual = require("src.game.RocketVisual")
+local AudioManager = require("src.AudioManager")
 
 local data = nil
 local cards = {}
@@ -13,6 +14,8 @@ local scroll_y = 0
 local max_scroll = 0
 local selected_idx = 1
 local focus_launch = false
+local toast_text = nil
+local toast_timer = 0
 
 local HEADER_H = 44
 local LEFT_W = 420
@@ -104,7 +107,16 @@ local function try_buy_card(idx)
     if not card then
         return
     end
-    if card:isMaxed() or not card:canAfford() then
+    if card:isMaxed() then
+        card:playDenyAnimation()
+        toast_text = Localizer.get("upgrade_already_max")
+        toast_timer = 1.5
+        return
+    end
+    if not card:canAfford() then
+        card:playDenyAnimation()
+        toast_text = Localizer.get("upgrade_no_points")
+        toast_timer = 1.5
         return
     end
     local cost = card:getCost()
@@ -120,6 +132,8 @@ local function try_buy_card(idx)
         c:setLevel(Upgrades.get_level(data.upgrades, c.def.id))
         c:setPoints(data.points)
     end
+    card:playBuyAnimation()
+    AudioManager.playSfx("buy")
 end
 
 local function build_cards()
@@ -166,6 +180,17 @@ function UpgradesScene.unload()
 end
 
 function UpgradesScene.update(dt)
+    for _, card in ipairs(cards) do
+        card:updateAnimation(dt)
+    end
+
+    if toast_timer > 0 then
+        toast_timer = toast_timer - dt
+        if toast_timer <= 0 then
+            toast_text = nil
+        end
+    end
+
     if InputActions.pressed("ui_back") then
         local SceneManager = require("src.SceneManager")
         local MenuScene = require("src.scenes.MenuScene")
@@ -287,6 +312,14 @@ function UpgradesScene.draw()
     end
     if tooltip_card then
         tooltip_card:drawTooltip(scroll_y)
+    end
+
+    if toast_text and toast_timer > 0 then
+        local alpha = math.min(toast_timer / 0.3, 1)
+        love.graphics.setColor(0.08, 0.08, 0.12, alpha * 0.9)
+        love.graphics.rectangle("fill", 440, 320, 400, 50, 8)
+        love.graphics.setColor(1, 0.85, 0.2, alpha)
+        love.graphics.printf(toast_text, 440, 335, 400, "center")
     end
 end
 

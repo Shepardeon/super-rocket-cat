@@ -8,6 +8,7 @@ local music_assets = {
 local sfx_assets = {
     confirm = "assets/audio/sfx/confirm.wav",
     select = "assets/audio/sfx/select.wav",
+    buy = "assets/audio/sfx/buy.wav",
     explosion = "assets/audio/sfx/explosion.wav",
     collect = "assets/audio/sfx/collect.wav",
     qte_ok = "assets/audio/sfx/qte_ok.wav",

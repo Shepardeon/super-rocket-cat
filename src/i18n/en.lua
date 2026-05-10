@@ -83,4 +83,7 @@ return {
     upgrade_survival_qte_name = "Survival QTE",
     upgrade_survival_qte_desc = "Increases survival QTE window",
     upgrade_survival_qte_effect = "QTE: %.2fs",
+
+    upgrade_no_points = "Not enough points!",
+    upgrade_already_max = "Max level reached!",
 }
