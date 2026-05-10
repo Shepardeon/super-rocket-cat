@@ -17,7 +17,6 @@ local focus_launch = false
 local HEADER_H = 44
 local LEFT_W = 420
 local RIGHT_W = 860
-local CARD_W = math.floor((RIGHT_W - 20 - 8) / 2)
 local CARD_H = 85
 local CARD_GAP = 8
 local PANEL_PAD = 10
@@ -64,7 +63,8 @@ local function navigate(dx, dy)
     if focus_launch then
         if dy < 0 then
             focus_launch = false
-            selected_idx = 7
+            local num_cols = 2
+            selected_idx = math.min(#cards, num_cols * (math.ceil(#cards / num_cols) - 1) + 1)
             scroll_to_card(selected_idx)
         end
         return
@@ -322,9 +322,9 @@ function UpgradesScene.mousepressed(x, y, button)
         return
     end
 
-    for _, card in ipairs(cards) do
+    for i, card in ipairs(cards) do
         if card:hitTest(x, y - scroll_y) then
-            try_buy_card(selected_idx)
+            try_buy_card(i)
             return
         end
     end

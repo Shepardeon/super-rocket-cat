@@ -141,7 +141,7 @@ function UpgradeCard:drawTooltip(scroll_offs)
     local fh = font:getHeight()
     local line_h = fh + LINE_GAP
 
-    local display = Upgrades.get_display_info(self.def.id, math.max(1, self.level))
+    local display = Upgrades.get_display_info(self.def.id, self.level)
     local desc = Localizer.get(self.def.desc_key)
 
     local lines = { desc, "", display and Localizer.getFormatted(display.key, display.value) or "" }
