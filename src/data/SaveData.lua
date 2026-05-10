@@ -31,22 +31,23 @@ end
 
 function SaveData:add_points(amount)
     local n = tonumber(amount)
-    if not n or n <= 0 then return false, "Amount must be positive" end
+    if not n or n <= 0 then return false, "SaveData:add_points - amount must be positive" end
     self.points = self.points + n
     return true
 end
 
 function SaveData:spend_points(amount)
     local n = tonumber(amount)
-    if not n or n <= 0 then return false, "Amount must be positive" end
-    if self.points < n then return false, "Insufficient points" end
+    if not n or n <= 0 then return false, "SaveData:spend_points - amount must be positive" end
+    if self.points < n then return false, "SaveData:spend_points - insufficient points" end
     self.points = self.points - n
     return true
 end
 
 function SaveData:has_points(amount)
     local n = tonumber(amount)
-    return self.points >= (n or 0)
+    if not n or n <= 0 then return false end
+    return self.points >= n
 end
 
 function SaveData:serialize()
