@@ -26,6 +26,7 @@ end
 
 function RocketVisual.draw(x, y, w, h, upgrades_data)
     if not upgrades_data then return end
+    love.graphics.push()
 
     local cx = x + w / 2
     local body_w = w * 0.38
@@ -135,6 +136,7 @@ function RocketVisual.draw(x, y, w, h, upgrades_data)
         love.graphics.setColor(0.3, 0.6, 1, pulse * 0.4)
         love.graphics.circle("fill", cx, (body_top + body_bot) / 2, sr)
     end
+    love.graphics.pop()
 end
 
 return RocketVisual

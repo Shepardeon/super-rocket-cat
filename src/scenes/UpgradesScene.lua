@@ -7,6 +7,7 @@ local Upgrades = require("src.game.Upgrades")
 local UpgradeCard = require("src.ui.UpgradeCard")
 local RocketVisual = require("src.game.RocketVisual")
 local AudioManager = require("src.AudioManager")
+local C = require("src.constants")
 
 local data = nil
 local cards = {}
@@ -17,8 +18,6 @@ local focus_launch = false
 local toast_text = nil
 local toast_timer = 0
 
-local HEADER_H = 44
-local LEFT_W = 420
 local RIGHT_W = 860
 local CARD_H = 85
 local CARD_GAP = 8
@@ -47,7 +46,7 @@ local function scroll_to_card(idx)
     end
     local card_top = card.y + scroll_y
     local card_bot = card.y + scroll_y + CARD_H
-    local panel_top = HEADER_H + PANEL_PAD
+    local panel_top = C.HEADER_H + PANEL_PAD
     local panel_bot = 720 - PANEL_PAD
     if card_top < panel_top then
         scroll_y = scroll_y + (panel_top - card_top)
@@ -144,15 +143,15 @@ local function build_cards()
     for i, def in ipairs(defs) do
         local col = (i - 1) % 2
         local row = math.floor((i - 1) / 2)
-        local cx = LEFT_W + PANEL_PAD + col * (card_w + CARD_GAP)
-        local cy = HEADER_H + PANEL_PAD + row * (CARD_H + CARD_GAP)
+        local cx = C.LEFT_W + PANEL_PAD + col * (card_w + CARD_GAP)
+        local cy = C.HEADER_H + PANEL_PAD + row * (CARD_H + CARD_GAP)
         local card = UpgradeCard.new(cx, cy, card_w, CARD_H, def)
         card:setLevel(Upgrades.get_level(data and data.upgrades, def.id))
         card:setPoints(data and data.points or 0)
         cards[#cards + 1] = card
     end
     local total_h = #defs / 2 * (CARD_H + CARD_GAP) - CARD_GAP
-    local available_h = 720 - HEADER_H - PANEL_PAD * 2
+    local available_h = 720 - C.HEADER_H - PANEL_PAD * 2
     max_scroll = math.min(0, available_h - total_h)
     if scroll_y < max_scroll then
         scroll_y = max_scroll
@@ -247,23 +246,23 @@ function UpgradesScene.draw()
     end
 
     local fh = love.graphics.getFont():getHeight()
-    local hc = HEADER_H / 2 - fh / 2
+    local hc = C.HEADER_H / 2 - fh / 2
 
     love.graphics.setColor(0.12, 0.12, 0.18)
-    love.graphics.rectangle("fill", 0, 0, 1280, HEADER_H)
+    love.graphics.rectangle("fill", 0, 0, 1280, C.HEADER_H)
     love.graphics.setColor(1, 1, 1)
     love.graphics.printf(data.name, 10, hc, 300, "left")
     love.graphics.printf(Localizer.get("upgrades_title"), 0, hc, 1280, "center")
-    love.graphics.printf(Localizer.getFormatted("upgrades_points", data.points), RIGHT_W, hc, LEFT_W - 10, "right")
+    love.graphics.printf(Localizer.getFormatted("upgrades_points", data.points), RIGHT_W, hc, C.LEFT_W - 10, "right")
 
     love.graphics.setColor(0.3, 0.3, 0.5)
-    love.graphics.line(0, HEADER_H, 1280, HEADER_H)
+    love.graphics.line(0, C.HEADER_H, 1280, C.HEADER_H)
     love.graphics.setColor(0.1, 0.1, 0.14)
-    love.graphics.rectangle("fill", 0, HEADER_H, LEFT_W, 720 - HEADER_H)
+    love.graphics.rectangle("fill", 0, C.HEADER_H, C.LEFT_W, 720 - C.HEADER_H)
     love.graphics.setColor(0.08, 0.08, 0.12)
-    love.graphics.rectangle("fill", LEFT_W, HEADER_H, RIGHT_W, 720 - HEADER_H)
+    love.graphics.rectangle("fill", C.LEFT_W, C.HEADER_H, RIGHT_W, 720 - C.HEADER_H)
     love.graphics.setColor(0.3, 0.3, 0.5)
-    love.graphics.line(LEFT_W, HEADER_H, LEFT_W, 720)
+    love.graphics.line(C.LEFT_W, C.HEADER_H, C.LEFT_W, 720)
 
     love.graphics.push()
     love.graphics.translate(0, scroll_y)
@@ -276,10 +275,10 @@ function UpgradesScene.draw()
     end
     love.graphics.pop()
 
-    RocketVisual.draw(0, HEADER_H, LEFT_W, 720 - HEADER_H, data.upgrades)
+    RocketVisual.draw(0, C.HEADER_H, C.LEFT_W, 720 - C.HEADER_H, data.upgrades)
 
     local btn_w, btn_h = 180, 50
-    local btn_x = (LEFT_W - btn_w) / 2
+    local btn_x = (C.LEFT_W - btn_w) / 2
     local btn_y = 720 - 90
     if focus_launch then
         love.graphics.setColor(0.3, 0.6, 0.4)
@@ -301,7 +300,7 @@ function UpgradesScene.draw()
 
     if max_scroll < 0 then
         love.graphics.setColor(0.4, 0.4, 0.4)
-        love.graphics.printf("scroll", LEFT_W, 715, RIGHT_W, "center")
+        love.graphics.printf("scroll", C.LEFT_W, 715, RIGHT_W, "center")
     end
 
     local tooltip_card = nil
@@ -350,7 +349,7 @@ function UpgradesScene.mousepressed(x, y, button)
     end
 
     local btn_w, btn_h = 180, 50
-    local btn_x = (LEFT_W - btn_w) / 2
+    local btn_x = (C.LEFT_W - btn_w) / 2
     local btn_y = 720 - 90
     if x >= btn_x and x <= btn_x + btn_w and y >= btn_y and y <= btn_y + btn_h then
         local SceneManager = require("src.SceneManager")
