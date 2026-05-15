@@ -86,4 +86,12 @@ return {
 
     upgrade_no_points = "Pas assez de points !",
     upgrade_already_max = "Niveau max atteint !",
+
+    qte_caption = "Événement rapide !",
+    qte_prompt = "Appuyez sur %s pour lancer !",
+    qte_green = "BONUS DE VITESSE !",
+    qte_yellow = "Départ neutre.",
+    qte_red = "MALUS DE VITESSE !",
+    qte_waiting = "En attente du vol...",
+    qte_back = "Retour aux améliorations",
 }

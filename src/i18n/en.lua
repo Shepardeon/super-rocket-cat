@@ -86,4 +86,12 @@ return {
 
     upgrade_no_points = "Not enough points!",
     upgrade_already_max = "Max level reached!",
+
+    qte_caption = "Quick Time Event!",
+    qte_prompt = "Press %s to launch!",
+    qte_green = "SPEED BOOST!",
+    qte_yellow = "Neutral start.",
+    qte_red = "SPEED PENALTY!",
+    qte_waiting = "Awaiting flight...",
+    qte_back = "Return to upgrades",
 }
