@@ -193,8 +193,20 @@ function UpgradeCard:drawTooltip(scroll_offs)
     local desc = Localizer.get(self.def.desc_key)
 
     local lines = { desc, "", display and Localizer.getFormatted(display.key, display.value) or "" }
+
+    local next_info = nil
+    local progress_text = nil
+    if not self:isMaxed() and display then
+        next_info = Upgrades.get_display_info_next(self.def.id, self.level)
+        if next_info then
+            local cv = ("%g"):format(display.value)
+            local nv = ("%g"):format(next_info.value)
+            progress_text = cv .. " -> " .. nv
+        end
+    end
+
     local tooltip_w = 280
-    local tooltip_h = #lines * line_h + 10
+    local tooltip_h = (#lines + (progress_text and 1 or 0)) * line_h + 10
     local tooltip_x = math.min(x, love.graphics.getWidth() - tooltip_w - 4)
     local tooltip_y = y + h + 4
     local screen_h = love.graphics.getHeight()
@@ -212,6 +224,11 @@ function UpgradeCard:drawTooltip(scroll_offs)
     for _, line in ipairs(lines) do
         love.graphics.printf(line, tooltip_x + 6, ty, tooltip_w - 12, "left")
         ty = ty + line_h
+    end
+
+    if progress_text then
+        love.graphics.setColor(0.2, 1, 0.2)
+        love.graphics.printf(progress_text, tooltip_x + 6, ty, tooltip_w - 12, "left")
     end
 end
 

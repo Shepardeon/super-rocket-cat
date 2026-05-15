@@ -1,5 +1,16 @@
 local Upgrades = {}
 
+local BASE_STATS = {
+    max_speed = 50,
+    hp = 100,
+    fuel = 100,
+    maneuverability = 1.0,
+    magnet_radius = 0,
+    points_multiplier = 1.0,
+    auto_repair = 0,
+    qte_window = 1.0,
+}
+
 local UPGRADE_DEFS = {
     {
         id = "engine",
@@ -14,7 +25,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { max_speed = 50 + level * 10 }
+            return { max_speed = level * 10 }
         end,
     },
     {
@@ -30,7 +41,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { hp = 100 + level * 50 }
+            return { hp = level * 50 }
         end,
     },
     {
@@ -46,7 +57,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { fuel = 100 + level * 25 }
+            return { fuel = level * 25 }
         end,
     },
     {
@@ -62,7 +73,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { maneuverability = 1.0 + level * 0.1 }
+            return { maneuverability = level * 0.1 }
         end,
     },
     {
@@ -94,7 +105,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { points_multiplier = 1.0 + level * 0.5 }
+            return { points_multiplier = level * 0.5 }
         end,
     },
     {
@@ -126,7 +137,7 @@ local UPGRADE_DEFS = {
             return math.floor(self.base_cost * (self.cost_multiplier ^ level))
         end,
         stat_effect = function(self, level)
-            return { qte_window = 1.0 + level * 0.15 }
+            return { qte_window = level * 0.15 }
         end,
     },
 }
@@ -154,31 +165,34 @@ end
 function Upgrades.get_display_info(id, level)
     local def = Upgrades.get_by_id(id)
     if not def then return nil end
-    local effects = def:stat_effect(level)
+    local bonus = def:stat_effect(level)
+    local base = BASE_STATS[def.stat_display_field] or 0
+    local value = base + (bonus[def.stat_display_field] or 0)
     return {
         key = def.stat_display_key,
-        value = effects[def.stat_display_field],
+        value = value,
     }
 end
 
+function Upgrades.get_display_info_next(id, level)
+    local def = Upgrades.get_by_id(id)
+    if not def then return nil end
+    if level >= def.max_level then return nil end
+    return Upgrades.get_display_info(id, level + 1)
+end
+
 function Upgrades.compute_stats(upgrades_data)
-    local stats = {
-        max_speed = 50,
-        hp = 100,
-        fuel = 100,
-        maneuverability = 1.0,
-        magnet_radius = 0,
-        points_multiplier = 1.0,
-        auto_repair = 0,
-        qte_window = 1.0,
-    }
+    local stats = {}
+    for k, v in pairs(BASE_STATS) do
+        stats[k] = v
+    end
     if not upgrades_data then return stats end
     for _, entry in ipairs(upgrades_data) do
         local def = Upgrades.get_by_id(entry.id)
         if def and entry.level and entry.level > 0 then
-            local effects = def:stat_effect(entry.level)
-            for k, v in pairs(effects) do
-                stats[k] = v
+            local bonus = def:stat_effect(entry.level)
+            for k, v in pairs(bonus) do
+                stats[k] = (stats[k] or 0) + v
             end
         end
     end
@@ -193,6 +207,15 @@ function Upgrades.get_level(upgrades_data, id)
         end
     end
     return 0
+end
+
+function Upgrades.get_all_levels(upgrades_data)
+    if not upgrades_data then return {} end
+    local out = {}
+    for _, def in ipairs(UPGRADE_DEFS) do
+        out[def.id] = Upgrades.get_level(upgrades_data, def.id)
+    end
+    return out
 end
 
 return Upgrades

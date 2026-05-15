@@ -2,6 +2,7 @@ local LaunchScene = {}
 local InputActions = require("src.InputActions")
 local Localizer = require("src.Localizer")
 local SaveManager = require("src.SaveManager")
+local Upgrades = require("src.game.Upgrades")
 local RocketVisual = require("src.game.RocketVisual")
 local C = require("src.constants")
 
@@ -35,7 +36,7 @@ function LaunchScene.draw()
         local rocket_h = math.floor(rocket_w * (C.SCREEN_H - C.HEADER_H) / C.LEFT_W)
         local rocket_x = (1280 - rocket_w) / 2
         local rocket_y = 100
-        RocketVisual.draw(rocket_x, rocket_y, rocket_w, rocket_h, save_data.upgrades)
+        RocketVisual.draw(rocket_x, rocket_y, rocket_w, rocket_h, Upgrades.get_all_levels(save_data.upgrades))
     end
 
     love.graphics.setColor(0.3, 0.3, 0.4)

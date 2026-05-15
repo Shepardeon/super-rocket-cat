@@ -39,6 +39,7 @@ end
 function SaveData:spend_points(amount)
     local n = tonumber(amount)
     if not n or n <= 0 then return false, "SaveData:spend_points - amount must be positive" end
+    if n ~= math.floor(n) then return false, "SaveData:spend_points - amount must be an integer" end
     if self.points < n then return false, "SaveData:spend_points - insufficient points" end
     self.points = self.points - n
     return true

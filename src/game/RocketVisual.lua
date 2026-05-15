@@ -1,7 +1,5 @@
 local RocketVisual = {}
 
-local Upgrades = require("src.game.Upgrades")
-
 local function draw_flames(cx, bottom, body_w, intensity)
     local t = love.timer.getTime()
     local flame_h = 10 + intensity * 6
@@ -24,8 +22,8 @@ local function draw_flames(cx, bottom, body_w, intensity)
     )
 end
 
-function RocketVisual.draw(x, y, w, h, upgrades_data)
-    if not upgrades_data then return end
+function RocketVisual.draw(x, y, w, h, levels)
+    if not levels then return end
     love.graphics.push()
 
     local cx = x + w / 2
@@ -36,14 +34,14 @@ function RocketVisual.draw(x, y, w, h, upgrades_data)
     local body_top = y + (h - body_h - nose_h) / 2
     local body_bot = body_top + body_h
 
-    local engine_lv = Upgrades.get_level(upgrades_data, "engine")
-    local hull_lv = Upgrades.get_level(upgrades_data, "hull")
-    local tank_lv = Upgrades.get_level(upgrades_data, "tank")
-    local fins_lv = Upgrades.get_level(upgrades_data, "fins")
-    local magnet_lv = Upgrades.get_level(upgrades_data, "magnet")
-    local mult_lv = Upgrades.get_level(upgrades_data, "multiplier")
-    local repair_lv = Upgrades.get_level(upgrades_data, "auto_repair")
-    local shield_lv = Upgrades.get_level(upgrades_data, "survival_qte")
+    local engine_lv = levels.engine or 0
+    local hull_lv = levels.hull or 0
+    local tank_lv = levels.tank or 0
+    local fins_lv = levels.fins or 0
+    local magnet_lv = levels.magnet or 0
+    local mult_lv = levels.multiplier or 0
+    local repair_lv = levels.auto_repair or 0
+    local shield_lv = levels.survival_qte or 0
 
     if engine_lv > 0 then
         draw_flames(cx, body_bot, body_w, engine_lv)
